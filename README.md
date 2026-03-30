@@ -47,7 +47,7 @@ python -m pip install -e ".[dev]"
 ```python
 from memguard import MemoryGuard
 
-guard = MemoryGuard(agent_id="my-agent")
+guard = MemoryGuard(agent_id="my-agent", default_token_budget=1200)
 
 # Protect critical instructions
 guard.protect("항상 반말로 대답해")
@@ -58,6 +58,7 @@ guard.protect("git reset --hard 절대 금지", kind="guardrail")
 result = guard.check(
     query="오늘 뭐 할까?",
     response="좋습니다. 일정을 확인해보겠습니다.",
+    token_budget=1200,
 )
 print(result["passed"])      # False
 print(result["violations"])  # ["formal_korean_detected"]
@@ -67,7 +68,7 @@ reminder = guard.reminder()
 # "⚠️ 다음 지시를 반드시 준수하세요:\n- 항상 반말로 대답해\n- ..."
 
 # Get integrity report
-report = guard.report()
+report = guard.report(token_budget=1200)
 print(report["drift_warnings"])  # 0
 print(report["observed_checks"]) # 1
 print(report["compliance_rate"]) # 0.0

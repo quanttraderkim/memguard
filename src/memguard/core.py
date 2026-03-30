@@ -128,9 +128,9 @@ class Memory:
             "prompt": prompt,
         }
 
-    def verify(self) -> Dict[str, Any]:
+    def verify(self, *, token_budget: int = 4000) -> Dict[str, Any]:
         protected = self._protected_items()
-        context = self.build_context("", token_budget=4000, include_buffer=False)
+        context = self.build_context("", token_budget=token_budget, include_buffer=False)
         loaded_ids = {item["id"] for item in context["zones"]["protected"]}
         conflicts = _detect_conflicts(protected)
         drift = self.detect_drift()
@@ -191,9 +191,10 @@ class Memory:
         response: str,
         memory_ids: Optional[List[str]] = None,
         include_active: bool = False,
+        token_budget: int = 4000,
         source: str = "observe",
     ) -> Dict[str, Any]:
-        context = self.build_context(query, include_buffer=False)
+        context = self.build_context(query, token_budget=token_budget, include_buffer=False)
         loaded_memory_map = _collect_loaded_memories(self.agent_id, self.store, context["zones"], include_active)
 
         if memory_ids is not None:
@@ -223,10 +224,11 @@ class Memory:
         executed: bool = True,
         memory_ids: Optional[List[str]] = None,
         include_active: bool = False,
+        token_budget: int = 4000,
         source: str = "observe_action",
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        context = self.build_context(query, include_buffer=False)
+        context = self.build_context(query, token_budget=token_budget, include_buffer=False)
         loaded_memory_map = _collect_loaded_memories(self.agent_id, self.store, context["zones"], include_active)
         if memory_ids is not None:
             requested_ids = set(memory_ids)

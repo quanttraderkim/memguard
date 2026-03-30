@@ -27,6 +27,17 @@ def test_verify_detects_conflicting_speech_level(tmp_path):
     assert report["conflicts"][0]["topic"] == "speech_level"
 
 
+def test_verify_accepts_runtime_token_budget(tmp_path):
+    mem = Memory(agent_id="assistant", storage_path=str(tmp_path))
+    mem.remember("코드 블록에 항상 언어 태그를 붙여")
+    mem.remember("항상 반말로 대답해")
+
+    report = mem.verify(token_budget=10)
+
+    assert report["protected_memories"] == 2
+    assert report["integrity"]["protected_loaded"] == 1
+
+
 def test_project_memory_is_recalled_for_matching_query(tmp_path):
     mem = Memory(agent_id="assistant", storage_path=str(tmp_path))
     mem.remember("이 저장소는 pnpm을 사용해", priority="project", metadata={"repo": "acme/web-app"})
@@ -118,6 +129,22 @@ def test_observe_response_records_loaded_protected_memories(tmp_path):
     assert observed["passed"] == 1
     assert observed["observations"][0]["zone"] == "protected"
     assert observed["observations"][0]["source"] == "observe"
+
+
+def test_observe_response_accepts_runtime_token_budget(tmp_path):
+    mem = Memory(agent_id="assistant", storage_path=str(tmp_path))
+    mem.remember("코드 블록에 항상 언어 태그를 붙여")
+    mem.remember("항상 반말로 대답해")
+
+    observed = mem.observe_response(
+        query="파이썬 예제 보여줘",
+        response="```\nprint('oops')\n```",
+        token_budget=10,
+    )
+
+    assert observed["checked_memories"] == 1
+    skipped_instructions = {item["instruction"] for item in observed["skipped"]}
+    assert "항상 반말로 대답해" not in skipped_instructions
 
 
 def test_observe_response_can_include_active_memories(tmp_path):

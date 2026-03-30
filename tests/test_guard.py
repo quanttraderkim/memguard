@@ -111,6 +111,39 @@ def test_report_uses_observed_checks_for_compliance_rate(tmp_path):
     assert report["compliance_rate"] == 0.5
 
 
+def test_check_accepts_runtime_token_budget(tmp_path):
+    guard = MemoryGuard(agent_id="test", storage_path=str(tmp_path))
+    guard.protect("코드 블록에 항상 언어 태그를 붙여")
+    guard.protect("항상 반말로 대답해")
+
+    large = guard.check(
+        query="파이썬 예제 보여줘",
+        response="```\nprint('oops')\n```",
+        token_budget=4000,
+    )
+    small = guard.check(
+        query="파이썬 예제 보여줘",
+        response="```\nprint('oops')\n```",
+        token_budget=10,
+    )
+
+    assert large["status"] == "failed"
+    assert "항상 반말로 대답해" in large["not_applicable"]
+    assert small["status"] == "failed"
+    assert "항상 반말로 대답해" not in small["not_applicable"]
+
+
+def test_report_accepts_runtime_token_budget(tmp_path):
+    guard = MemoryGuard(agent_id="test", storage_path=str(tmp_path))
+    guard.protect("코드 블록에 항상 언어 태그를 붙여")
+    guard.protect("항상 반말로 대답해")
+
+    report = guard.report(token_budget=10)
+
+    assert report["protected"] == 2
+    assert report["details"]["integrity"]["protected_loaded"] == 1
+
+
 def test_context_returns_prompt_string(tmp_path):
     """context()가 문자열 반환, Protected Zone 포함"""
     guard = MemoryGuard(agent_id="test", storage_path=str(tmp_path))
@@ -120,6 +153,20 @@ def test_context_returns_prompt_string(tmp_path):
     assert isinstance(prompt, str)
     assert "반말" in prompt
     assert "Protected" in prompt
+
+
+def test_guard_can_set_default_token_budget(tmp_path):
+    guard = MemoryGuard(agent_id="test", storage_path=str(tmp_path), default_token_budget=10)
+    guard.protect("코드 블록에 항상 언어 태그를 붙여")
+    guard.protect("항상 반말로 대답해")
+
+    result = guard.check(
+        query="파이썬 예제 보여줘",
+        response="```\nprint('oops')\n```",
+    )
+
+    assert result["status"] == "failed"
+    assert "항상 반말로 대답해" not in result["not_applicable"]
 
 
 def test_guard_delegates_to_memory(tmp_path):
