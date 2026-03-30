@@ -1,8 +1,12 @@
 # MemGuard
 
+![MemGuard hero](assets/memguard-hero.svg)
+
 Local-first instruction persistence and memory integrity for AI agents.
 
 > Keep critical instructions alive, observable, and testable across compaction, tool calls, and drift.
+
+MemGuard is for the gap between "saved to memory" and "still shaping behavior 50 turns later."
 
 ## The Problem
 
@@ -65,6 +69,21 @@ print(report["drift_warnings"])  # 0
 print(report["observed_checks"]) # 1
 print(report["compliance_rate"]) # 0.0
 ```
+
+## Live Demo
+
+If you want to see MemGuard wrapped around a real model call, run the one-file OpenAI-compatible demo:
+
+```bash
+OPENAI_API_KEY=... python examples/openai_compatible_agent.py
+```
+
+That example does three things in one place:
+- injects protected instructions into the model prompt
+- checks the returned response for instruction compliance
+- simulates a risky file edit and shows action-level verification
+
+If you use an OpenAI-compatible gateway, set `OPENAI_BASE_URL` or `OPENAI_CHAT_ENDPOINT` and keep the same script.
 
 ## Custom Checkers
 
@@ -190,6 +209,8 @@ The benchmark is split into two tracks:
 - `Persistence`: compares `no_memory`, `naive_fifo`, `pinned_prompt`, and `memguard`
 - `Verification`: measures precision / recall / F1 / false-positive rate / mean turns to detection
 - `LLM Verification` optionally evaluates open-ended semantic rules across language, summary-first, brevity, and approval-before-action families
+
+![Instruction Survival Benchmark snapshot](assets/isb-summary.svg)
 
 On the bundled deterministic suite, the key result at token budget `500` is:
 

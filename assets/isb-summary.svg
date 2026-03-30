@@ -1,0 +1,28 @@
+<svg width="1200" height="540" viewBox="0 0 1200 540" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="1200" height="540" rx="28" fill="#0F1724"/>
+<rect x="36" y="34" width="1128" height="472" rx="22" fill="#121E2D" stroke="#25384C"/>
+<text x="80" y="96" fill="#F8FAFC" font-size="34" font-weight="700" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">Instruction survival at the hardest budget</text>
+<text x="80" y="132" fill="#9FB0C5" font-size="18" font-weight="500" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">Bundled ISB snapshot at token budget 500. MemGuard keeps both critical instructions and active project facts alive.</text>
+<line x1="80" y1="420" x2="1100" y2="420" stroke="#36506A" stroke-width="2"/>
+<line x1="80" y1="190" x2="80" y2="420" stroke="#36506A" stroke-width="2"/>
+<rect x="116" y="420.0" width="180" height="0.0" rx="18" fill="#64748B"/>
+<text x="206.0" y="454" fill="#E8EEF5" font-size="19" font-weight="700" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">No Memory</text>
+<text x="206.0" y="406.0" fill="#F8FAFC" font-size="20" font-weight="700" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">TSR 0</text>
+<text x="206.0" y="482" fill="#AFC0D3" font-size="15" font-weight="600" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">ISR 0 · AFR 0</text>
+<rect x="328" y="420.0" width="180" height="0.0" rx="18" fill="#94A3B8"/>
+<text x="418.0" y="454" fill="#E8EEF5" font-size="19" font-weight="700" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">Naive FIFO</text>
+<text x="418.0" y="406.0" fill="#F8FAFC" font-size="20" font-weight="700" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">TSR 0</text>
+<text x="418.0" y="482" fill="#AFC0D3" font-size="15" font-weight="600" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">ISR 0 · AFR 0</text>
+<rect x="540" y="291.48" width="180" height="128.51999999999998" rx="18" fill="#E7A83B"/>
+<text x="630.0" y="454" fill="#E8EEF5" font-size="19" font-weight="700" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">Pinned Prompt</text>
+<text x="630.0" y="277.48" fill="#F8FAFC" font-size="20" font-weight="700" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">TSR 0.714</text>
+<text x="630.0" y="482" fill="#AFC0D3" font-size="15" font-weight="600" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">ISR 1 · AFR 0</text>
+<rect x="752" y="240.0" width="180" height="180.0" rx="18" fill="#48C78E"/>
+<text x="842.0" y="454" fill="#E8EEF5" font-size="19" font-weight="700" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">MemGuard</text>
+<text x="842.0" y="226.0" fill="#F8FAFC" font-size="20" font-weight="700" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">TSR 1</text>
+<text x="842.0" y="482" fill="#AFC0D3" font-size="15" font-weight="600" text-anchor="middle" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">ISR 1 · AFR 1</text>
+<rect x="820" y="176" width="294" height="112" rx="18" fill="#162637" stroke="#2D475F"/>
+<text x="848" y="214" fill="#F8FAFC" font-size="19" font-weight="700" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">Why this matters</text>
+<text x="848" y="246" fill="#B7C6D6" font-size="15" font-weight="500" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">Pinned prompts keep rules alive, but they lose</text>
+<text x="848" y="268" fill="#B7C6D6" font-size="15" font-weight="500" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">active project facts. MemGuard preserves both.</text>
+</svg>
