@@ -1,13 +1,13 @@
-# MemGuard
+# InstructionGuard
 
-![MemGuard hero](assets/memguard-hero.svg)
+![InstructionGuard hero](assets/instructionguard-hero.svg)
 
 Local-first instruction persistence and execution-time memory integrity for AI agents.
 
 > Keep critical instructions alive, observable, and testable across compaction, tool calls, and drift.
 
-MemGuard is for the gap between "saved to memory" and "still shaping behavior 50 turns later."
-It is not another generic memory store. MemGuard keeps critical instructions alive in context, verifies that responses still follow them, and checks real execution events before unsafe actions slip through.
+InstructionGuard is for the gap between "saved to memory" and "still shaping behavior 50 turns later."
+It is not another generic memory store. InstructionGuard keeps critical instructions alive in context, verifies that responses still follow them, and checks real execution events before unsafe actions slip through.
 
 ## The Problem
 
@@ -30,13 +30,13 @@ This happens because:
 
 ## How It Works
 
-MemGuard protects instructions across three linked layers:
+InstructionGuard protects instructions across three linked layers:
 
 1. **Protected Context** — Critical instructions get a protected zone in context that survives compaction
 2. **Response and Action Verification** — The same instruction set can validate text outputs and execution events
 3. **Hybrid Guardrails** — Deterministic checkers run first, and optional LLM judges fill in open-ended semantic gaps when rules are not enough
 
-The goal is practical control, not just better recall. Pinned prompts can keep rules around, but MemGuard is designed to answer the harder question: did the agent actually follow them when it responded or acted?
+The goal is practical control, not just better recall. Pinned prompts can keep rules around, but InstructionGuard is designed to answer the harder question: did the agent actually follow them when it responded or acted?
 
 ## Quickstart
 
@@ -45,9 +45,9 @@ python -m pip install -e ".[dev]"
 ```
 
 ```python
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
-guard = MemoryGuard(agent_id="my-agent", default_token_budget=1200)
+guard = InstructionGuard(agent_id="my-agent", default_token_budget=1200)
 
 # Protect critical instructions
 guard.protect("항상 반말로 대답해")
@@ -76,7 +76,7 @@ print(report["compliance_rate"]) # 0.0
 
 ## Live Demo
 
-If you want to see MemGuard wrapped around a real model call, run the one-file OpenAI-compatible demo:
+If you want to see InstructionGuard wrapped around a real model call, run the one-file OpenAI-compatible demo:
 
 ```bash
 OPENAI_API_KEY=... python examples/openai_compatible_agent.py
@@ -91,12 +91,12 @@ If you use an OpenAI-compatible gateway, set `OPENAI_BASE_URL` or `OPENAI_CHAT_E
 
 ## Custom Checkers
 
-You can extend MemGuard without waiting for a built-in rule:
+You can extend InstructionGuard without waiting for a built-in rule:
 
 ```python
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
-guard = MemoryGuard(agent_id="my-agent")
+guard = InstructionGuard(agent_id="my-agent")
 
 guard.register_checker(
     "korean_language",
@@ -118,14 +118,14 @@ Custom checkers receive `query`, `response`, `memory`, and `event_context`, so t
 ## Optional LLM Checkers
 
 For open-ended instructions that do not map well to a rule, you can register an LLM-backed checker.
-`provider` can be `openai`, `anthropic`, or `gemini`, and if you omit it MemGuard will infer it from the model name:
+`provider` can be `openai`, `anthropic`, or `gemini`, and if you omit it InstructionGuard will infer it from the model name:
 
 ```python
 import os
 
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
-guard = MemoryGuard(
+guard = InstructionGuard(
     agent_id="my-agent",
     llm="claude-3-5-sonnet-latest",
     llm_api_key=os.getenv("ANTHROPIC_API_KEY"),
@@ -149,7 +149,7 @@ print(result["status"])  # passed
 
 If you do not want a network call, pass a local `judge=` callable instead. Tests use that path so the core suite stays deterministic. For Gemini, pass `provider="gemini"` and a `gemini-*` model with `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
 
-MemGuard now supports three stability levers for LLM checkers:
+InstructionGuard now supports three stability levers for LLM checkers:
 - `rubric_template`: use a narrower built-in judging template such as `language_compliance`, `summary_first`, `brevity_limit`, or `approval_before_action`
 - `local_fallback=True`: compare the LLM decision against a deterministic local signal when one exists
 - `uncertainty_threshold`: downgrade low-confidence negatives into `uncertain` instead of hard-failing immediately
@@ -159,12 +159,12 @@ LLM checkers are still experimental, but they now expose `passed`, `failed`, and
 
 ## Action-Level Verification
 
-MemGuard can also verify what the agent actually did, not just what it said:
+InstructionGuard can also verify what the agent actually did, not just what it said:
 
 ```python
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
-guard = MemoryGuard(agent_id="my-agent")
+guard = InstructionGuard(agent_id="my-agent")
 guard.protect("파일 수정 전에는 항상 먼저 허가를 요청해")
 guard.protect("git reset --hard 절대 금지", kind="guardrail")
 
@@ -182,7 +182,7 @@ print(result["status"])      # failed
 print(result["violations"])  # ["approval_request_missing", "executed_without_approval"]
 ```
 
-This makes MemGuard useful for tool-using coding agents where correctness depends on actual execution order, not just generated text.
+This makes InstructionGuard useful for tool-using coding agents where correctness depends on actual execution order, not just generated text.
 
 `check()` now separates five outcomes:
 - `passed`: an applicable checker ran and passed
@@ -193,7 +193,7 @@ This makes MemGuard useful for tool-using coding agents where correctness depend
 
 ## Benchmark
 
-MemGuard now ships with a bundled `Instruction Survival Benchmark (ISB)`:
+InstructionGuard now ships with a bundled `Instruction Survival Benchmark (ISB)`:
 
 ```bash
 python benchmarks/isb/run.py --output benchmarks/isb/latest_results.json
@@ -210,7 +210,7 @@ python benchmarks/isb/run.py \
 ```
 
 The benchmark is split into two tracks:
-- `Persistence`: compares `no_memory`, `naive_fifo`, `pinned_prompt`, and `memguard`
+- `Persistence`: compares `no_memory`, `naive_fifo`, `pinned_prompt`, and `instructionguard`
 - `Saturation`: adds 20-rule and 50-rule protected-zone stress cases and reports explicit overflow/omission
 - `Verification`: measures precision / recall / F1 / false-positive rate / mean turns to detection
 - `LLM Verification` optionally evaluates open-ended semantic rules across language, summary-first, brevity, and approval-before-action families
@@ -224,14 +224,14 @@ On the bundled deterministic suite, the key result at token budget `500` is:
 | `no_memory` | `0.0` | `0.0` | `0.0` |
 | `naive_fifo` | `0.0` | `0.0` | `0.0` |
 | `pinned_prompt` | `1.0` | `0.0` | `0.714` |
-| `memguard` | `1.0` | `1.0` | `1.0` |
+| `instructionguard` | `1.0` | `1.0` | `1.0` |
 
 The bundled verification track currently reports `precision=1.0`, `recall=1.0`, `f1=1.0`, `fpr=0.0`, and `mttd=1.0` on supported built-in rules. Full raw output is written to `benchmarks/isb/latest_results.json`.
 
 The optional provider-backed LLM track is intentionally reported separately and now also reports `uncertain_rate`. The bundled open-ended suite currently covers 21 cases across four rubric families, so it is much more useful for rubric tuning than the earlier tiny smoke set. Treat those results as tuning feedback, not headline marketing numbers.
 
 The open-ended benchmark dataset now lives in `benchmarks/isb/llm_cases.json`, so you can grow or fork the semantic evaluation set without changing benchmark code.
-The same benchmark now also includes a saturation track so you can see how `memguard`, `pinned_prompt`, and naive baselines behave when 20 to 50 protected instructions compete for a small budget.
+The same benchmark now also includes a saturation track so you can see how `instructionguard`, `pinned_prompt`, and naive baselines behave when 20 to 50 protected instructions compete for a small budget.
 
 ## Development
 
@@ -272,7 +272,7 @@ python -m pip install -e ".[dev]"
 ### Memory (low-level)
 
 Full control over memory storage, retrieval, replay, and consolidation.
-See `src/memguard/core.py` for complete API.
+See `src/instructionguard/core.py` for complete API.
 
 ## Architecture
 

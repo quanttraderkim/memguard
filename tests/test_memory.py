@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from memguard import Memory
+from instructionguard import Memory
 
 
 def test_core_instruction_is_protected(tmp_path):

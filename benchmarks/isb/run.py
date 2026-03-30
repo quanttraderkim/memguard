@@ -15,7 +15,7 @@ LLM_CASES_PATH = Path(__file__).with_name("llm_cases.json")
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from memguard import Memory, MemoryGuard  # noqa: E402
+from instructionguard import Memory, MemoryGuard  # noqa: E402
 
 
 BUDGETS = [4000, 2000, 1000, 500]
@@ -161,8 +161,8 @@ def build_snapshot(
             },
         }
 
-    if strategy == "memguard":
-        with TemporaryDirectory(prefix="memguard-bench-") as tempdir:
+    if strategy == "instructionguard":
+        with TemporaryDirectory(prefix="instructionguard-bench-") as tempdir:
             mem = Memory(agent_id=f"bench-{budget}", storage_path=tempdir)
             for item in instruction_set:
                 mem.remember(item["text"], priority="core")
@@ -201,7 +201,7 @@ def simulate_task_success(snapshot: Snapshot) -> float:
 
 def run_persistence_benchmark() -> Dict[str, Any]:
     turns = generate_turns()
-    strategies = ["no_memory", "naive_fifo", "pinned_prompt", "memguard"]
+    strategies = ["no_memory", "naive_fifo", "pinned_prompt", "instructionguard"]
     results: Dict[str, List[Dict[str, Any]]] = {}
     for strategy in strategies:
         strategy_rows: List[Dict[str, Any]] = []
@@ -235,7 +235,7 @@ def generate_saturation_instructions(count: int) -> List[Dict[str, Any]]:
 
 def run_saturation_benchmark() -> Dict[str, Any]:
     turns = generate_turns()
-    strategies = ["no_memory", "naive_fifo", "pinned_prompt", "memguard"]
+    strategies = ["no_memory", "naive_fifo", "pinned_prompt", "instructionguard"]
     results: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
     for count in SATURATION_COUNTS:
         scenario_name = f"protected_{count}"
@@ -402,7 +402,7 @@ def compute_classification_metrics(rows: List[Dict[str, Any]]) -> Dict[str, floa
 def run_verification_benchmark() -> Dict[str, Any]:
     rows: List[Dict[str, Any]] = []
     for case in VERIFICATION_CASES:
-        with TemporaryDirectory(prefix="memguard-verify-") as tempdir:
+        with TemporaryDirectory(prefix="instructionguard-verify-") as tempdir:
             guard = MemoryGuard(agent_id=case["name"], storage_path=tempdir)
             guard.protect(case["instruction"], kind=case.get("kind", "instruction"))
             if case["mode"] == "response":
@@ -443,7 +443,7 @@ def run_verification_benchmark() -> Dict[str, Any]:
 
     detection_delays: List[int] = []
     for sequence in drift_sequences:
-        with TemporaryDirectory(prefix="memguard-drift-") as tempdir:
+        with TemporaryDirectory(prefix="instructionguard-drift-") as tempdir:
             guard = MemoryGuard(agent_id="drift", storage_path=tempdir)
             guard.protect(sequence["instruction"])
             detection_turn = None
@@ -470,7 +470,7 @@ def run_llm_verification_benchmark(
 ) -> Dict[str, Any]:
     rows: List[Dict[str, Any]] = []
     for case in load_llm_verification_cases():
-        with TemporaryDirectory(prefix="memguard-llm-") as tempdir:
+        with TemporaryDirectory(prefix="instructionguard-llm-") as tempdir:
             guard = MemoryGuard(
                 agent_id=case["name"],
                 storage_path=tempdir,
@@ -506,7 +506,7 @@ def run_llm_verification_benchmark(
 
 
 def format_summary(results: Dict[str, Any]) -> str:
-    lines = ["MemGuard Instruction Survival Benchmark"]
+    lines = ["InstructionGuard Instruction Survival Benchmark"]
     lines.append("")
     lines.append("Persistence")
     for strategy, rows in results["persistence"].items():

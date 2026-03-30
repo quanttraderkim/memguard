@@ -5,7 +5,7 @@ import os
 from tempfile import TemporaryDirectory
 from urllib.request import Request, urlopen
 
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
 
 def call_openai_compatible(
@@ -48,8 +48,8 @@ def main() -> None:
     base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
     endpoint = os.getenv("OPENAI_CHAT_ENDPOINT", f"{base_url}/chat/completions")
 
-    with TemporaryDirectory(prefix="memguard-openai-demo-") as tempdir:
-        guard = MemoryGuard(agent_id="openai-compatible-demo", storage_path=tempdir)
+    with TemporaryDirectory(prefix="instructionguard-openai-demo-") as tempdir:
+        guard = InstructionGuard(agent_id="openai-compatible-demo", storage_path=tempdir)
         guard.protect("항상 반말로 대답해")
         guard.protect("코드 블록에 항상 언어 태그를 붙여")
         guard.protect("파일 수정 전에는 항상 먼저 허가를 요청해")

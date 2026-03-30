@@ -21,12 +21,12 @@
     <rect x="58" y="60" width="1164" height="520" rx="28" fill="#0F1A28" fill-opacity="0.92" stroke="#233549"/>
   </g>
 
-  <text x="96" y="132" fill="#F7FAFC" font-size="52" font-weight="700" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">MemGuard</text>
+  <text x="96" y="132" fill="#F7FAFC" font-size="52" font-weight="700" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">InstructionGuard</text>
   <text x="96" y="176" fill="#9DB0C4" font-size="22" font-weight="500" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">Local-first instruction persistence and memory integrity for AI agents</text>
 
   <g>
     <rect x="96" y="230" width="502" height="284" rx="22" fill="#131F2E" stroke="#283A4F"/>
-    <text x="128" y="276" fill="#E7EDF4" font-size="24" font-weight="700" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">Without MemGuard</text>
+    <text x="128" y="276" fill="#E7EDF4" font-size="24" font-weight="700" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">Without InstructionGuard</text>
     <text x="128" y="314" fill="#9FB1C5" font-size="18" font-weight="500" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">Saved instructions fade after retrieval misses and compaction.</text>
 
     <rect x="128" y="344" width="438" height="58" rx="14" fill="#0E1722" stroke="#24374C"/>
@@ -41,7 +41,7 @@
 
   <g>
     <rect x="636" y="230" width="490" height="284" rx="22" fill="#161F18" stroke="#39503C"/>
-    <text x="668" y="276" fill="#F1F7F1" font-size="24" font-weight="700" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">With MemGuard</text>
+    <text x="668" y="276" fill="#F1F7F1" font-size="24" font-weight="700" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">With InstructionGuard</text>
     <text x="668" y="314" fill="#B8C9BA" font-size="18" font-weight="500" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">Protected instructions stay loaded and behavior stays observable.</text>
 
     <rect x="668" y="344" width="194" height="54" rx="14" fill="#112319" stroke="#2D5637"/>
