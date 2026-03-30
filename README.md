@@ -211,6 +211,7 @@ python benchmarks/isb/run.py \
 
 The benchmark is split into two tracks:
 - `Persistence`: compares `no_memory`, `naive_fifo`, `pinned_prompt`, and `memguard`
+- `Saturation`: adds 20-rule and 50-rule protected-zone stress cases and reports explicit overflow/omission
 - `Verification`: measures precision / recall / F1 / false-positive rate / mean turns to detection
 - `LLM Verification` optionally evaluates open-ended semantic rules across language, summary-first, brevity, and approval-before-action families
 
@@ -230,6 +231,7 @@ The bundled verification track currently reports `precision=1.0`, `recall=1.0`, 
 The optional provider-backed LLM track is intentionally reported separately and now also reports `uncertain_rate`. The bundled open-ended suite currently covers 21 cases across four rubric families, so it is much more useful for rubric tuning than the earlier tiny smoke set. Treat those results as tuning feedback, not headline marketing numbers.
 
 The open-ended benchmark dataset now lives in `benchmarks/isb/llm_cases.json`, so you can grow or fork the semantic evaluation set without changing benchmark code.
+The same benchmark now also includes a saturation track so you can see how `memguard`, `pinned_prompt`, and naive baselines behave when 20 to 50 protected instructions compete for a small budget.
 
 ## Development
 

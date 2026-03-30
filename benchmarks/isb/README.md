@@ -27,6 +27,7 @@ python benchmarks/isb/run.py \
 Tracks:
 
 - `Persistence`: instruction survival, active fact retention, task success rate, protected token ratio
+- `Saturation`: 20-rule and 50-rule protected-zone stress cases, with explicit overflow and omission reporting
 - `Verification`: precision, recall, F1, false-positive rate, mean turns to detection
 - `LLM Verification`: open-ended semantic checks for language compliance, summary-first behavior, brevity limits, and approval-before-action, with `uncertain_rate` reported separately
 
