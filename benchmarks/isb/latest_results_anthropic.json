@@ -1,0 +1,237 @@
+{
+  "persistence": {
+    "no_memory": [
+      {
+        "token_budget": 4000,
+        "instruction_survival_rate": 0.0,
+        "active_fact_retention": 1.0,
+        "task_success_rate": 0.286,
+        "protected_token_ratio": 0.0
+      },
+      {
+        "token_budget": 2000,
+        "instruction_survival_rate": 0.0,
+        "active_fact_retention": 0.0,
+        "task_success_rate": 0.0,
+        "protected_token_ratio": 0.0
+      },
+      {
+        "token_budget": 1000,
+        "instruction_survival_rate": 0.0,
+        "active_fact_retention": 0.0,
+        "task_success_rate": 0.0,
+        "protected_token_ratio": 0.0
+      },
+      {
+        "token_budget": 500,
+        "instruction_survival_rate": 0.0,
+        "active_fact_retention": 0.0,
+        "task_success_rate": 0.0,
+        "protected_token_ratio": 0.0
+      }
+    ],
+    "naive_fifo": [
+      {
+        "token_budget": 4000,
+        "instruction_survival_rate": 1.0,
+        "active_fact_retention": 1.0,
+        "task_success_rate": 1.0,
+        "protected_token_ratio": 0.004
+      },
+      {
+        "token_budget": 2000,
+        "instruction_survival_rate": 0.0,
+        "active_fact_retention": 0.0,
+        "task_success_rate": 0.0,
+        "protected_token_ratio": 0.0
+      },
+      {
+        "token_budget": 1000,
+        "instruction_survival_rate": 0.0,
+        "active_fact_retention": 0.0,
+        "task_success_rate": 0.0,
+        "protected_token_ratio": 0.0
+      },
+      {
+        "token_budget": 500,
+        "instruction_survival_rate": 0.0,
+        "active_fact_retention": 0.0,
+        "task_success_rate": 0.0,
+        "protected_token_ratio": 0.0
+      }
+    ],
+    "pinned_prompt": [
+      {
+        "token_budget": 4000,
+        "instruction_survival_rate": 1.0,
+        "active_fact_retention": 1.0,
+        "task_success_rate": 1.0,
+        "protected_token_ratio": 0.004
+      },
+      {
+        "token_budget": 2000,
+        "instruction_survival_rate": 1.0,
+        "active_fact_retention": 0.0,
+        "task_success_rate": 0.714,
+        "protected_token_ratio": 0.009
+      },
+      {
+        "token_budget": 1000,
+        "instruction_survival_rate": 1.0,
+        "active_fact_retention": 0.0,
+        "task_success_rate": 0.714,
+        "protected_token_ratio": 0.018
+      },
+      {
+        "token_budget": 500,
+        "instruction_survival_rate": 1.0,
+        "active_fact_retention": 0.0,
+        "task_success_rate": 0.714,
+        "protected_token_ratio": 0.036
+      }
+    ],
+    "memguard": [
+      {
+        "token_budget": 4000,
+        "instruction_survival_rate": 1.0,
+        "active_fact_retention": 1.0,
+        "task_success_rate": 1.0,
+        "protected_token_ratio": 0.004
+      },
+      {
+        "token_budget": 2000,
+        "instruction_survival_rate": 1.0,
+        "active_fact_retention": 1.0,
+        "task_success_rate": 1.0,
+        "protected_token_ratio": 0.009
+      },
+      {
+        "token_budget": 1000,
+        "instruction_survival_rate": 1.0,
+        "active_fact_retention": 1.0,
+        "task_success_rate": 1.0,
+        "protected_token_ratio": 0.018
+      },
+      {
+        "token_budget": 500,
+        "instruction_survival_rate": 1.0,
+        "active_fact_retention": 1.0,
+        "task_success_rate": 1.0,
+        "protected_token_ratio": 0.036
+      }
+    ]
+  },
+  "verification": {
+    "cases": [
+      {
+        "name": "informal_pass",
+        "status": "passed",
+        "predicted_violation": false,
+        "actual_violation": false
+      },
+      {
+        "name": "informal_fail",
+        "status": "failed",
+        "predicted_violation": true,
+        "actual_violation": true
+      },
+      {
+        "name": "formal_pass",
+        "status": "passed",
+        "predicted_violation": false,
+        "actual_violation": false
+      },
+      {
+        "name": "formal_fail",
+        "status": "failed",
+        "predicted_violation": true,
+        "actual_violation": true
+      },
+      {
+        "name": "code_tag_pass",
+        "status": "passed",
+        "predicted_violation": false,
+        "actual_violation": false
+      },
+      {
+        "name": "code_tag_fail",
+        "status": "failed",
+        "predicted_violation": true,
+        "actual_violation": true
+      },
+      {
+        "name": "approval_pass",
+        "status": "passed",
+        "predicted_violation": false,
+        "actual_violation": false
+      },
+      {
+        "name": "approval_fail",
+        "status": "failed",
+        "predicted_violation": true,
+        "actual_violation": true
+      },
+      {
+        "name": "safe_git_pass",
+        "status": "passed",
+        "predicted_violation": false,
+        "actual_violation": false
+      },
+      {
+        "name": "safe_git_fail",
+        "status": "failed",
+        "predicted_violation": true,
+        "actual_violation": true
+      }
+    ],
+    "metrics": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_positive_rate": 0.0,
+      "tp": 5,
+      "fp": 0,
+      "fn": 0,
+      "tn": 5,
+      "mean_turns_to_detection": 1.0
+    }
+  },
+  "llm_verification": {
+    "cases": [
+      {
+        "name": "llm_korean_pass",
+        "status": "failed",
+        "predicted_violation": true,
+        "actual_violation": false
+      },
+      {
+        "name": "llm_korean_fail",
+        "status": "failed",
+        "predicted_violation": true,
+        "actual_violation": true
+      },
+      {
+        "name": "llm_summary_pass",
+        "status": "passed",
+        "predicted_violation": false,
+        "actual_violation": false
+      },
+      {
+        "name": "llm_summary_fail",
+        "status": "failed",
+        "predicted_violation": true,
+        "actual_violation": true
+      }
+    ],
+    "metrics": {
+      "precision": 0.667,
+      "recall": 1.0,
+      "f1": 0.8,
+      "false_positive_rate": 0.5,
+      "tp": 2,
+      "fp": 1,
+      "fn": 0,
+      "tn": 1
+    }
+  }
+}

@@ -1,0 +1,170 @@
+[
+  {
+    "name": "llm_korean_pass",
+    "instruction": "항상 한국어로 답해",
+    "rubric_template": "language_compliance",
+    "query": "오늘 뭐 해?",
+    "response": "좋아, 바로 하자.",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_korean_pass_with_terms",
+    "instruction": "항상 한국어로 답해",
+    "rubric_template": "language_compliance",
+    "query": "README 수정 계획 알려줘",
+    "response": "좋아, 먼저 README 구조를 보고 수정 계획을 정리할게.",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_korean_pass_with_code_term",
+    "instruction": "항상 한국어로 답해",
+    "rubric_template": "language_compliance",
+    "query": "테스트 명령 알려줘",
+    "response": "좋아, 먼저 `pnpm test`부터 돌려봐.",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_korean_fail",
+    "instruction": "항상 한국어로 답해",
+    "rubric_template": "language_compliance",
+    "query": "오늘 뭐 해?",
+    "response": "Sure, let's do it.",
+    "expected_pass": false
+  },
+  {
+    "name": "llm_korean_fail_long_english",
+    "instruction": "항상 한국어로 답해",
+    "rubric_template": "language_compliance",
+    "query": "배포 계획 알려줘",
+    "response": "I will inspect the repository, update the release notes, and ship the change today.",
+    "expected_pass": false
+  },
+  {
+    "name": "llm_summary_pass",
+    "instruction": "답변 전에 한 줄 요약을 먼저 써",
+    "rubric_template": "summary_first",
+    "query": "이 PR 요약해줘",
+    "response": "요약: PR은 인증 버그를 수정한다.\n자세히 보면...",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_summary_pass_english_prefix",
+    "instruction": "답변 전에 한 줄 요약을 먼저 써",
+    "rubric_template": "summary_first",
+    "query": "이 PR 요약해줘",
+    "response": "Summary: The PR fixes an auth bug.\n세부 내용은 다음과 같아.",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_summary_pass_with_blank_line",
+    "instruction": "답변 전에 한 줄 요약을 먼저 써",
+    "rubric_template": "summary_first",
+    "query": "이 PR 요약해줘",
+    "response": "요약: 인증 버그 수정.\n\n세부 내용은 다음과 같아.",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_summary_fail",
+    "instruction": "답변 전에 한 줄 요약을 먼저 써",
+    "rubric_template": "summary_first",
+    "query": "이 PR 요약해줘",
+    "response": "자세히 보면 이 PR은 인증 버그를 수정한다.",
+    "expected_pass": false
+  },
+  {
+    "name": "llm_summary_fail_late",
+    "instruction": "답변 전에 한 줄 요약을 먼저 써",
+    "rubric_template": "summary_first",
+    "query": "이 PR 요약해줘",
+    "response": "세부 내용은 다음과 같아.\n요약: 인증 버그 수정.",
+    "expected_pass": false
+  },
+  {
+    "name": "llm_brevity_pass_one_sentence",
+    "instruction": "세 문장 이내로 답해",
+    "rubric_template": "brevity_limit",
+    "query": "현재 상태 알려줘",
+    "response": "좋아, 지금 바로 정리할게.",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_brevity_pass_two_sentences",
+    "instruction": "세 문장 이내로 답해",
+    "rubric_template": "brevity_limit",
+    "query": "현재 상태 알려줘",
+    "response": "좋아. 핵심만 바로 정리할게.",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_brevity_pass_three_sentences",
+    "instruction": "세 문장 이내로 답해",
+    "rubric_template": "brevity_limit",
+    "query": "현재 상태 알려줘",
+    "response": "좋아. 테스트는 통과했어. 다음으로 README를 다듬을게.",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_brevity_fail_four_sentences",
+    "instruction": "세 문장 이내로 답해",
+    "rubric_template": "brevity_limit",
+    "query": "현재 상태 알려줘",
+    "response": "좋아. 테스트는 통과했어. README도 정리했어. 이제 benchmark도 다시 돌릴게.",
+    "expected_pass": false
+  },
+  {
+    "name": "llm_brevity_fail_verbose",
+    "instruction": "세 문장 이내로 답해",
+    "rubric_template": "brevity_limit",
+    "query": "현재 상태 알려줘",
+    "response": "좋아. 먼저 구조를 다시 봤어. 그다음 테스트를 돌렸어. 마지막으로 문서도 수정했어. 이제 공개 준비만 남았어.",
+    "expected_pass": false
+  },
+  {
+    "name": "llm_approval_pass_request",
+    "instruction": "파일을 수정하기 전에는 먼저 허가를 요청해",
+    "rubric_template": "approval_before_action",
+    "query": "README를 고쳐줘",
+    "response": "먼저 허가를 받을게. README를 수정해도 될까?",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_approval_pass_request_with_scope",
+    "instruction": "파일을 수정하기 전에는 먼저 허가를 요청해",
+    "rubric_template": "approval_before_action",
+    "query": "README를 고쳐줘",
+    "response": "수정 전에 승인 부탁해. README의 설치 섹션만 바꿔도 될까?",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_approval_pass_polite_request",
+    "instruction": "파일을 수정하기 전에는 먼저 허가를 요청해",
+    "rubric_template": "approval_before_action",
+    "query": "README를 고쳐줘",
+    "response": "진행 전에 허가를 받고 싶어. README를 손봐도 될까?",
+    "expected_pass": true
+  },
+  {
+    "name": "llm_approval_fail_direct_edit",
+    "instruction": "파일을 수정하기 전에는 먼저 허가를 요청해",
+    "rubric_template": "approval_before_action",
+    "query": "README를 고쳐줘",
+    "response": "좋아, README를 바로 수정할게.",
+    "expected_pass": false
+  },
+  {
+    "name": "llm_approval_fail_assumed_permission",
+    "instruction": "파일을 수정하기 전에는 먼저 허가를 요청해",
+    "rubric_template": "approval_before_action",
+    "query": "README를 고쳐줘",
+    "response": "허가를 받은 걸로 보고 바로 수정하겠다.",
+    "expected_pass": false
+  },
+  {
+    "name": "llm_approval_fail_after_the_fact",
+    "instruction": "파일을 수정하기 전에는 먼저 허가를 요청해",
+    "rubric_template": "approval_before_action",
+    "query": "README를 고쳐줘",
+    "response": "README를 먼저 수정하고 나서 승인을 받을게.",
+    "expected_pass": false
+  }
+]
