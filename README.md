@@ -222,9 +222,25 @@ python -m pip install -e ".[dev]"
 
 ## Works With
 
-- **Standalone** — no dependencies, local SQLite
-- **Any agent framework** — LangChain, CrewAI, AutoGen, OpenClaw
-- **Any memory backend** — use alongside mem0, Zep, or your own
+MemGuard has zero mandatory dependencies. It works with any Python agent setup:
+
+- **Standalone** — local SQLite, no external services needed
+- **Any OpenAI-compatible API** — OpenAI, Ollama, LiteLLM, vLLM (see [`examples/openai_agent_loop.py`](examples/openai_agent_loop.py))
+- **Any memory backend** — use alongside mem0, Zep, or your own storage
+
+MemGuard is a **verification layer**, not a replacement for your agent framework or memory backend. It sits between your agent and its output, checking whether stored instructions are actually followed.
+
+```python
+# Minimal integration — 3 lines added to any agent loop:
+guard = MemoryGuard(agent_id="my-agent")
+guard.protect("항상 반말로 대답해")
+
+# ... your agent generates a response ...
+
+result = guard.check(query=user_input, response=agent_output)
+if not result["passed"]:
+    print(f"⚠️ Violations: {result['violations']}")
+```
 
 ## API
 
@@ -246,6 +262,11 @@ python -m pip install -e ".[dev]"
 
 Full control over memory storage, retrieval, replay, and consolidation.
 See `src/memguard/core.py` for complete API.
+
+## Documentation
+
+- [3-Zone Token Budget Policy](docs/3-zone-budget.md) — how context budget is allocated and what happens under pressure
+- [Compliance Observability](docs/compliance-observability.md) — export events, JSONL logging, SQL queries for dashboards
 
 ## Architecture
 
