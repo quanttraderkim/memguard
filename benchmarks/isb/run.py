@@ -19,6 +19,8 @@ from memguard import Memory, MemoryGuard  # noqa: E402
 
 
 BUDGETS = [4000, 2000, 1000, 500]
+SATURATION_BUDGETS = [1000, 500, 250]
+SATURATION_COUNTS = [20, 50]
 CRITICAL_INSTRUCTIONS = [
     {"id": "informal", "text": "항상 반말로 대답해"},
     {"id": "language_tag", "text": "코드 블록에 항상 언어 태그를 붙여"},
@@ -74,20 +76,36 @@ def generate_turns() -> List[str]:
 
 
 class Snapshot:
-    def __init__(self, name: str, budget: int, context: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        budget: int,
+        context: str,
+        *,
+        instructions: List[Dict[str, Any]] | None = None,
+        facts: List[Dict[str, Any]] | None = None,
+    ) -> None:
         self.name = name
         self.budget = budget
         self.context = context
-        self.instructions = [item for item in CRITICAL_INSTRUCTIONS if item["text"] in context]
-        self.facts = [item for item in PROJECT_FACTS if item["text"] in context]
+        instruction_set = instructions if instructions is not None else CRITICAL_INSTRUCTIONS
+        fact_set = facts if facts is not None else PROJECT_FACTS
+        self._instruction_count = len(instruction_set)
+        self._fact_count = len(fact_set)
+        self.instructions = [item for item in instruction_set if item["text"] in context]
+        self.facts = [item for item in fact_set if item["text"] in context]
 
     @property
     def instruction_survival_rate(self) -> float:
-        return round(len(self.instructions) / len(CRITICAL_INSTRUCTIONS), 3)
+        if self._instruction_count == 0:
+            return 0.0
+        return round(len(self.instructions) / self._instruction_count, 3)
 
     @property
     def active_fact_retention(self) -> float:
-        return round(len(self.facts) / len(PROJECT_FACTS), 3)
+        if self._fact_count == 0:
+            return 0.0
+        return round(len(self.facts) / self._fact_count, 3)
 
     @property
     def protected_token_ratio(self) -> float:
@@ -95,35 +113,72 @@ class Snapshot:
         return round(protected_tokens / self.budget, 3)
 
 
-def build_snapshot(strategy: str, budget: int, turns: List[str]) -> Snapshot:
-    instruction_texts = [item["text"] for item in CRITICAL_INSTRUCTIONS]
-    fact_texts = [item["text"] for item in PROJECT_FACTS]
+def build_snapshot(
+    strategy: str,
+    budget: int,
+    turns: List[str],
+    *,
+    instructions: List[Dict[str, Any]] | None = None,
+    facts: List[Dict[str, Any]] | None = None,
+) -> Dict[str, Any]:
+    instruction_set = instructions if instructions is not None else CRITICAL_INSTRUCTIONS
+    fact_set = facts if facts is not None else PROJECT_FACTS
+    instruction_texts = [item["text"] for item in instruction_set]
+    fact_texts = [item["text"] for item in fact_set]
 
     if strategy == "no_memory":
         selected = fit_recent(fact_texts + turns, budget)
-        return Snapshot(strategy, budget, "\n".join(selected))
+        snapshot = Snapshot(strategy, budget, "\n".join(selected), instructions=instruction_set, facts=fact_set)
+        return {"snapshot": snapshot, "overflow": {"protected": {"overflowed": False, "omitted": []}}}
 
     if strategy == "naive_fifo":
         selected = fit_recent(instruction_texts + fact_texts + turns, budget)
-        return Snapshot(strategy, budget, "\n".join(selected))
+        snapshot = Snapshot(strategy, budget, "\n".join(selected), instructions=instruction_set, facts=fact_set)
+        omitted = [item for item in instruction_set if item["text"] not in snapshot.context]
+        return {
+            "snapshot": snapshot,
+            "overflow": {
+                "protected": {
+                    "overflowed": bool(omitted),
+                    "omitted": [{"instruction": item["text"], "reason": "recency_compacted"} for item in omitted],
+                }
+            },
+        }
 
     if strategy == "pinned_prompt":
         protected = fit_forward(instruction_texts, budget)
         remaining = max(budget - sum(estimate_tokens(item) for item in protected), 0)
         selected = protected + fit_recent(fact_texts + turns, remaining)
-        return Snapshot(strategy, budget, "\n".join(selected))
+        snapshot = Snapshot(strategy, budget, "\n".join(selected), instructions=instruction_set, facts=fact_set)
+        omitted = [item for item in instruction_set if item["text"] not in snapshot.context]
+        return {
+            "snapshot": snapshot,
+            "overflow": {
+                "protected": {
+                    "overflowed": bool(omitted),
+                    "omitted": [{"instruction": item["text"], "reason": "prompt_budget_exceeded"} for item in omitted],
+                }
+            },
+        }
 
     if strategy == "memguard":
         with TemporaryDirectory(prefix="memguard-bench-") as tempdir:
             mem = Memory(agent_id=f"bench-{budget}", storage_path=tempdir)
-            for item in CRITICAL_INSTRUCTIONS:
+            for item in instruction_set:
                 mem.remember(item["text"], priority="core")
-            for item in PROJECT_FACTS:
+            for item in fact_set:
                 mem.remember(item["text"], priority="project", metadata=item["metadata"])
             for turn in turns:
                 mem.remember(turn, priority="episode")
-            context = mem.build_context(FINAL_QUERY, token_budget=budget)["prompt"]
-            return Snapshot(strategy, budget, context)
+            context_result = mem.build_context(FINAL_QUERY, token_budget=budget)
+            snapshot = Snapshot(
+                strategy,
+                budget,
+                context_result["prompt"],
+                instructions=instruction_set,
+                facts=fact_set,
+            )
+            return {"snapshot": snapshot, "overflow": context_result["overflow"]}
 
     raise ValueError(f"Unknown strategy: {strategy}")
 
@@ -151,7 +206,7 @@ def run_persistence_benchmark() -> Dict[str, Any]:
     for strategy in strategies:
         strategy_rows: List[Dict[str, Any]] = []
         for budget in BUDGETS:
-            snapshot = build_snapshot(strategy, budget, turns)
+            snapshot = build_snapshot(strategy, budget, turns)["snapshot"]
             strategy_rows.append(
                 {
                     "token_budget": budget,
@@ -162,6 +217,50 @@ def run_persistence_benchmark() -> Dict[str, Any]:
                 }
             )
         results[strategy] = strategy_rows
+    return results
+
+
+def generate_saturation_instructions(count: int) -> List[Dict[str, Any]]:
+    return [
+        {
+            "id": f"sat_{idx:02d}",
+            "text": (
+                f"보호 규칙 {idx:02d}: 사용자 승인 없이 파일이나 설정을 바꾸지 말고, "
+                "변경 이유와 예상 영향, 다음 단계를 먼저 짧게 설명해."
+            ),
+        }
+        for idx in range(1, count + 1)
+    ]
+
+
+def run_saturation_benchmark() -> Dict[str, Any]:
+    turns = generate_turns()
+    strategies = ["no_memory", "naive_fifo", "pinned_prompt", "memguard"]
+    results: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
+    for count in SATURATION_COUNTS:
+        scenario_name = f"protected_{count}"
+        instruction_set = generate_saturation_instructions(count)
+        scenario_rows: Dict[str, List[Dict[str, Any]]] = {}
+        for strategy in strategies:
+            rows: List[Dict[str, Any]] = []
+            for budget in SATURATION_BUDGETS:
+                built = build_snapshot(strategy, budget, turns, instructions=instruction_set, facts=[])
+                snapshot = built["snapshot"]
+                overflow = built["overflow"]["protected"]
+                rows.append(
+                    {
+                        "token_budget": budget,
+                        "protected_candidates": len(instruction_set),
+                        "protected_loaded": len(snapshot.instructions),
+                        "protected_omitted": len(instruction_set) - len(snapshot.instructions),
+                        "instruction_survival_rate": snapshot.instruction_survival_rate,
+                        "protected_token_ratio": snapshot.protected_token_ratio,
+                        "overflowed": bool(overflow.get("overflowed", False)),
+                        "omitted_instructions": [item["instruction"] for item in overflow.get("omitted", [])],
+                    }
+                )
+            scenario_rows[strategy] = rows
+        results[scenario_name] = scenario_rows
     return results
 
 
@@ -433,6 +532,25 @@ def format_summary(results: Dict[str, Any]) -> str:
             mttd=verification["mean_turns_to_detection"],
         )
     )
+    saturation = results.get("saturation")
+    if saturation:
+        lines.append("")
+        lines.append("Saturation")
+        for scenario, strategies in saturation.items():
+            lines.append(f"- {scenario}")
+            for strategy, rows in strategies.items():
+                lines.append(f"  - {strategy}")
+                for row in rows:
+                    lines.append(
+                        "    budget={budget} loaded={loaded}/{candidates} omitted={omitted} ISR={isr} overflow={overflow}".format(
+                            budget=row["token_budget"],
+                            loaded=row["protected_loaded"],
+                            candidates=row["protected_candidates"],
+                            omitted=row["protected_omitted"],
+                            isr=row["instruction_survival_rate"],
+                            overflow=row["overflowed"],
+                        )
+                    )
     llm_track = results.get("llm_verification")
     if llm_track is not None:
         if "skipped" in llm_track:
@@ -475,6 +593,7 @@ def main() -> None:
     results: Dict[str, Any] = {
         "persistence": run_persistence_benchmark(),
         "verification": run_verification_benchmark(),
+        "saturation": run_saturation_benchmark(),
     }
     if args.llm_model:
         try:
