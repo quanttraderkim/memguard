@@ -268,13 +268,13 @@ python -m pip install -e ".[dev]"
 
 ## Works With
 
-MemGuard has zero mandatory dependencies. It works with any Python agent setup:
+InstructionGuard has zero mandatory dependencies. It works with any Python agent setup:
 
 - **Standalone** — local SQLite, no external services needed
 - **Any OpenAI-compatible API** — OpenAI, Ollama, LiteLLM, vLLM (see [`examples/openai_agent_loop.py`](examples/openai_agent_loop.py))
 - **Any memory backend** — use alongside mem0, Zep, or your own storage
 
-MemGuard is a **verification layer**, not a replacement for your agent framework or memory backend. It sits between your agent and its output, checking whether stored instructions are actually followed.
+InstructionGuard is a **verification layer**, not a replacement for your agent framework or memory backend. It sits between your agent and its output, checking whether stored instructions are actually followed.
 
 ```python
 # Minimal integration — 3 lines added to any agent loop:

@@ -1,6 +1,6 @@
 # 3-Zone Token Budget Policy
 
-MemGuard allocates context budget across three zones, each with a different eviction policy.
+InstructionGuard allocates context budget across three zones, each with a different eviction policy.
 
 ## Allocation Ratios
 
@@ -42,9 +42,9 @@ This means the first item always gets in (even if it alone exceeds the budget), 
 
 ## What Happens When Protected Zone Overflows
 
-**Current behavior (v0.3):** If protected instructions exceed 50% of the total budget, lower-`persistence_score` items are silently dropped. There is no compression or summarization step.
+**Current behavior (v0.3):** If protected instructions exceed 50% of the total budget, lower-`persistence_score` items may be omitted from the final prompt. InstructionGuard now reports that overflow explicitly, but there is still no compact rendering or semantic summarization step.
 
-**Known limitation:** With many protected instructions (20+), some will be lost without warning. See [#10](https://github.com/quanttraderkim/memguard/issues/10) for overflow detection and [#9](https://github.com/quanttraderkim/memguard/issues/9) for compact rendering under budget pressure.
+**Known limitation:** With many protected instructions (20+), some will still be omitted under pressure. See [#9](https://github.com/quanttraderkim/instructionguard/issues/9) for compact rendering under budget pressure and [#13](https://github.com/quanttraderkim/instructionguard/issues/13) for configurable zone budget policy.
 
 ## Persistence Score
 
@@ -68,7 +68,7 @@ Reinforcement increases when the same content or topic is stored multiple times.
 
 ## Future Evolution
 
-- **Compact rendering** ([#9](https://github.com/quanttraderkim/memguard/issues/9)): Summarize or bullet-compress protected instructions when budget is tight.
-- **Overflow detection** ([#10](https://github.com/quanttraderkim/memguard/issues/10)): Warn when protected items are dropped instead of silently skipping.
-- **Saturation benchmark** ([#11](https://github.com/quanttraderkim/memguard/issues/11)): Test ISR with 20-50 protected instructions to quantify real-world limits.
+- **Compact rendering** ([#9](https://github.com/quanttraderkim/instructionguard/issues/9)): Summarize or bullet-compress protected instructions when budget is tight.
+- **Configurable zone policy** ([#13](https://github.com/quanttraderkim/instructionguard/issues/13)): Let users tune the protected / active / buffer split.
+- **Saturation benchmark** ([#11](https://github.com/quanttraderkim/instructionguard/issues/11)): Test ISR with 20-50 protected instructions to quantify real-world limits.
 - **Provider-specific tokenizers**: Optional tiktoken/SentencePiece integration for accurate counts.

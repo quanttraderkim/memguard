@@ -1,7 +1,7 @@
-"""Minimal agent loop with MemGuard + OpenAI-compatible API.
+"""Minimal agent loop with InstructionGuard + OpenAI-compatible API.
 
 Works with any OpenAI-compatible provider (OpenAI, Ollama, LiteLLM, vLLM, etc.).
-No framework dependencies — just urllib and MemGuard.
+No framework dependencies — just urllib and InstructionGuard.
 
 Usage:
     export OPENAI_API_KEY=sk-...
@@ -14,7 +14,7 @@ import os
 from tempfile import TemporaryDirectory
 from urllib.request import Request, urlopen
 
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
 
 def chat(messages: list[dict], model: str = "gpt-4o-mini") -> str:
@@ -31,8 +31,8 @@ def chat(messages: list[dict], model: str = "gpt-4o-mini") -> str:
 
 
 def main() -> None:
-    with TemporaryDirectory(prefix="memguard-openai-") as tmpdir:
-        guard = MemoryGuard(agent_id="openai-agent", storage_path=tmpdir)
+    with TemporaryDirectory(prefix="instructionguard-openai-") as tmpdir:
+        guard = InstructionGuard(agent_id="openai-agent", storage_path=tmpdir)
 
         # 1. Protect critical instructions
         guard.protect("항상 반말로 대답해")
@@ -47,12 +47,16 @@ def main() -> None:
         history: list[dict] = [{"role": "system", "content": guard.reminder()}]
 
         for query in queries:
-            # Inject protected context as system message
+            # Inject protected context as a system message for each turn.
             context = guard.context(query, token_budget=2000)
-            history.append({"role": "user", "content": query})
+            messages = history + [
+                {"role": "system", "content": context},
+                {"role": "user", "content": query},
+            ]
 
             # Call LLM
-            response = chat(history)
+            response = chat(messages)
+            history.append({"role": "user", "content": query})
             history.append({"role": "assistant", "content": response})
 
             # 3. Check compliance
@@ -72,4 +76,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-```

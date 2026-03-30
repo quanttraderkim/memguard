@@ -1,6 +1,6 @@
 # Compliance Event Export & Observability
 
-MemGuard stores every compliance check as a `ComplianceEvent` in local SQLite. This guide shows how to export, inspect, and feed those events into external tools.
+InstructionGuard stores every compliance check as a `ComplianceEvent` in local SQLite. This guide shows how to export, inspect, and feed those events into external tools.
 
 ## What Gets Stored
 
@@ -28,9 +28,9 @@ ComplianceEvent(
 ## Export Memories
 
 ```python
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
-guard = MemoryGuard(agent_id="my-agent", storage_path="./data")
+guard = InstructionGuard(agent_id="my-agent", storage_path="./data")
 
 # Export all memories to JSON
 guard.export("./exports/memories.json")
@@ -41,9 +41,9 @@ guard.export("./exports/memories.json")
 Compliance events are accessible through the low-level `Memory` API:
 
 ```python
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
-guard = MemoryGuard(agent_id="my-agent", storage_path="./data")
+guard = InstructionGuard(agent_id="my-agent", storage_path="./data")
 
 # All events
 events = guard._mem.store.list_events("my-agent")
@@ -84,9 +84,9 @@ This format is compatible with:
 
 ```python
 """Quick compliance dashboard — run after a session."""
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
-guard = MemoryGuard(agent_id="my-agent", storage_path="./data")
+guard = InstructionGuard(agent_id="my-agent", storage_path="./data")
 report = guard.report()
 
 print(f"Protected instructions: {report['protected']}")
@@ -132,4 +132,4 @@ HAVING failures > 0
 ORDER BY failures DESC;
 ```
 
-The database file lives at the `storage_path` you configured (default: `.memguard/<agent_id>.sqlite3`).
+The database file lives at the `storage_path` you configured (default: `.instructionguard/<agent_id>.sqlite3`).
