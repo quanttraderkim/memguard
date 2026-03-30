@@ -2,11 +2,12 @@
 
 ![MemGuard hero](assets/memguard-hero.svg)
 
-Local-first instruction persistence and memory integrity for AI agents.
+Local-first instruction persistence and execution-time memory integrity for AI agents.
 
 > Keep critical instructions alive, observable, and testable across compaction, tool calls, and drift.
 
 MemGuard is for the gap between "saved to memory" and "still shaping behavior 50 turns later."
+It is not another generic memory store. MemGuard keeps critical instructions alive in context, verifies that responses still follow them, and checks real execution events before unsafe actions slip through.
 
 ## The Problem
 
@@ -29,11 +30,13 @@ This happens because:
 
 ## How It Works
 
-MemGuard protects instructions across three mechanisms:
+MemGuard protects instructions across three linked layers:
 
-1. **Memory Guardian** — Critical instructions get a protected zone in context that survives compaction
-2. **Compliance Check** — Verify AI responses and execution events actually follow stored instructions
-3. **Drift Detection** — Detect when instruction compliance degrades over time
+1. **Protected Context** — Critical instructions get a protected zone in context that survives compaction
+2. **Response and Action Verification** — The same instruction set can validate text outputs and execution events
+3. **Hybrid Guardrails** — Deterministic checkers run first, and optional LLM judges fill in open-ended semantic gaps when rules are not enough
+
+The goal is practical control, not just better recall. Pinned prompts can keep rules around, but MemGuard is designed to answer the harder question: did the agent actually follow them when it responded or acted?
 
 ## Quickstart
 
