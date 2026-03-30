@@ -6,8 +6,9 @@ Local-first instruction persistence and execution-time memory integrity for AI a
 
 > Keep critical instructions alive, observable, and testable across compaction, tool calls, and drift.
 
-InstructionGuard is for the gap between "saved to memory" and "still shaping behavior 50 turns later."
-It is not another generic memory store. InstructionGuard keeps critical instructions alive in context, verifies that responses still follow them, and checks real execution events before unsafe actions slip through.
+[Get Started in 5 Minutes](#-get-started-in-5-minutes) | [See a Real Agent Loop](#-see-a-real-agent-loop) | [Why Not Just Pinned Prompts](#-why-not-just-pinned-prompts)
+
+InstructionGuard is for the gap between "saved to memory" and "still shaping behavior 50 turns later." It is not another generic memory store. It keeps critical instructions alive in context, verifies that responses still follow them, and checks real execution events before unsafe actions slip through.
 
 ## The Problem
 
@@ -23,22 +24,37 @@ User: "오늘 뭐 할까?"
 Agent: "좋습니다. 일정을 확인해보겠습니다."  ← 🤦 forgot the instruction
 ```
 
-This happens because:
-- Context windows compress old content
-- Memory retrieval misses critical instructions
-- No one verifies if stored memories actually influence behavior
+This happens because context windows compress old content, retrieval misses critical instructions, and most memory layers stop at storage instead of checking whether the stored rule still shaped the reply or the action that followed.
 
-## How It Works
+## Use InstructionGuard If
 
-InstructionGuard protects instructions across three linked layers:
+- your agent must keep a few high-value rules alive across long conversations and compaction
+- you care whether the agent **actually followed** the rule, not just whether it was stored
+- you need guardrails for real execution events such as file edits, tool calls, or destructive commands
+- you want deterministic checks first, with optional LLM judgment only for open-ended semantic rules
 
-1. **Protected Context** — Critical instructions get a protected zone in context that survives compaction
-2. **Response and Action Verification** — The same instruction set can validate text outputs and execution events
-3. **Hybrid Guardrails** — Deterministic checkers run first, and optional LLM judges fill in open-ended semantic gaps when rules are not enough
+## Why InstructionGuard
 
-The goal is practical control, not just better recall. Pinned prompts can keep rules around, but InstructionGuard is designed to answer the harder question: did the agent actually follow them when it responded or acted?
+InstructionGuard protects instructions across three linked layers.
 
-## Quickstart
+1. **Protected Context** keeps critical instructions in a reserved zone so they survive compaction pressure longer than ordinary retrieved memory.
+2. **Response and Action Verification** uses the same instruction set to validate both generated text and real execution events.
+3. **Hybrid Guardrails** run deterministic checkers first and use optional LLM judges only when a rule is too open-ended for a simple checker.
+
+The goal is practical control, not just better recall. Pinned prompts can keep rules around, but InstructionGuard is built to answer the harder question: did the agent actually follow them when it responded or acted?
+
+## Why Not Just Pinned Prompts?
+
+| | Pinned prompts | InstructionGuard |
+|--|--|--|
+| Keep rules visible in context | Yes | Yes |
+| Detect when a rule was ignored | No | Yes |
+| Verify tool and file actions | No | Yes |
+| Detect instruction drift over time | No | Yes |
+| Mix deterministic checks with optional LLM judgment | No | Yes |
+| Report overflow when protected rules no longer fit | No | Yes |
+
+## Get Started in 5 Minutes
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -74,20 +90,23 @@ print(report["observed_checks"]) # 1
 print(report["compliance_rate"]) # 0.0
 ```
 
-## Live Demo
+The quickest way to understand the product is simple: protect one or two rules, run a reply through `check()`, and look at what failed. If you need to inspect real execution behavior, `observe_action()` gives you the same shape of answer for tools and edits.
 
-If you want to see InstructionGuard wrapped around a real model call, run the one-file OpenAI-compatible demo:
+## See a Real Agent Loop
+
+If you want to see InstructionGuard wrapped around a real model call, run the one-file OpenAI-compatible demo.
 
 ```bash
 OPENAI_API_KEY=... python examples/openai_compatible_agent.py
 ```
 
-That example does three things in one place:
-- injects protected instructions into the model prompt
-- checks the returned response for instruction compliance
-- simulates a risky file edit and shows action-level verification
+That example does three things in one place. It injects protected instructions into the model prompt, checks the returned response for instruction compliance, and simulates a risky file edit so you can see action-level verification in the same flow.
 
 If you use an OpenAI-compatible gateway, set `OPENAI_BASE_URL` or `OPENAI_CHAT_ENDPOINT` and keep the same script.
+
+## Token Budget and 3-Zone Context
+
+InstructionGuard currently uses one total `token_budget` and splits it into three zones with a simple fixed policy: `Protected 50%`, `Active 35%`, and `Buffer` for the rest. Token usage is estimated locally with a lightweight character-based heuristic, not a model-specific tokenizer. Today that means InstructionGuard is doing **selection**, not full semantic compression. When the protected zone overflows, it reports the omission explicitly instead of pretending every protected instruction still made it into the final prompt.
 
 ## Custom Checkers
 
