@@ -90,7 +90,7 @@
         "protected_token_ratio": 0.036
       }
     ],
-    "memguard": [
+    "instructionguard": [
       {
         "token_budget": 4000,
         "instruction_survival_rate": 1.0,

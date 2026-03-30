@@ -621,7 +621,7 @@ class Memory:
 
 def _resolve_storage_path(agent_id: str, storage_path: Optional[str]) -> Path:
     if storage_path is None:
-        return Path.cwd() / ".memguard" / f"{agent_id}.sqlite3"
+        return Path.cwd() / ".instructionguard" / f"{agent_id}.sqlite3"
     candidate = Path(storage_path).expanduser()
     if candidate.suffix in {".db", ".sqlite", ".sqlite3"}:
         return candidate

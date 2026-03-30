@@ -1,6 +1,6 @@
 # Instruction Survival Benchmark
 
-This directory contains the bundled benchmark suite for MemGuard.
+This directory contains the bundled benchmark suite for InstructionGuard.
 
 Run:
 

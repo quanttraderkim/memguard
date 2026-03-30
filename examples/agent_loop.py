@@ -3,7 +3,7 @@ from __future__ import annotations
 from pprint import pprint
 from tempfile import TemporaryDirectory
 
-from memguard import Memory
+from instructionguard import Memory
 
 
 def run_turn(mem: Memory, query: str, response: str) -> None:
@@ -38,7 +38,7 @@ def run_turn(mem: Memory, query: str, response: str) -> None:
 
 
 def main() -> None:
-    with TemporaryDirectory(prefix="memguard-demo-") as tempdir:
+    with TemporaryDirectory(prefix="instructionguard-demo-") as tempdir:
         mem = Memory(agent_id="demo-agent", storage_path=tempdir)
 
         mem.remember("항상 반말로 대답해")

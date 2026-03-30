@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from memguard import MemoryGuard
+from instructionguard import MemoryGuard
 
 
 def test_register_llm_checker_can_validate_open_ended_instruction(tmp_path):

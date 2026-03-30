@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from memguard import MemoryGuard
+from instructionguard import MemoryGuard
 
 
 def test_protect_and_check_pass(tmp_path):

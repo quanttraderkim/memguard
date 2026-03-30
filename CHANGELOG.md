@@ -1,8 +1,9 @@
 # Changelog
 
 ## v0.3 (alpha)
+- 프로젝트 리네이밍: **MemGuard** → **InstructionGuard**
 - optional `register_llm_checker(...)` 추가로 open-ended instruction verification 경로 도입
-- OpenAI / Anthropic / Gemini provider-aware LLM judge 추가 (`src/memguard/llm.py`)
+- OpenAI / Anthropic / Gemini provider-aware LLM judge 추가 (`src/instructionguard/llm.py`)
 - LLM checker에 `rubric_template`, `uncertainty_threshold`, `local_fallback` 추가
 - LLM checker에 optional `negative_recheck` confirmatory pass 추가
 - `language_compliance`, `summary_first`, `brevity_limit`, `approval_before_action` rubric template 추가
@@ -12,7 +13,7 @@
 - open-ended LLM benchmark dataset를 `benchmarks/isb/llm_cases.json`으로 분리하고 21개 케이스로 확장
 - `uncertain_rate` 지표 추가
 - `report()`와 benchmark 지표를 실제 observed compliance event 기준으로 정리
-- `memorymesh` legacy shim 제거, `memguard` 단일 이름 체계로 정리
+- `memorymesh` legacy shim 제거, `instructionguard` 단일 이름 체계로 정리
 - provider-backed live LLM benchmark 경로 추가
 - `python -m pytest tests -v` 기준 테스트 32개 통과
 
