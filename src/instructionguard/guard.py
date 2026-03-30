@@ -24,6 +24,7 @@ class MemoryGuard:
         storage_path: Optional[str] = None,
         llm: Optional[str] = None,
         llm_api_key: Optional[str] = None,  # TODO: v0.3에서 LLM 어댑터에 전달 예정
+        default_token_budget: int = 4000,
     ) -> None:
         self._mem = Memory(
             agent_id=agent_id,
@@ -32,6 +33,7 @@ class MemoryGuard:
         )
         self.agent_id = agent_id
         self._llm_api_key = llm_api_key
+        self._default_token_budget = default_token_budget
 
     def protect(
         self,
@@ -56,11 +58,13 @@ class MemoryGuard:
         *,
         query: str,
         response: str,
+        token_budget: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Check whether a response complies with all protected instructions."""
         result = self._mem.observe_response(
             query=query,
             response=response,
+            token_budget=self._resolve_token_budget(token_budget),
             source="guard_check",
         )
         return self._summarize_observation_result(result)
@@ -77,6 +81,7 @@ class MemoryGuard:
         approval_granted: bool = False,
         executed: bool = True,
         include_active: bool = False,
+        token_budget: Optional[int] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Observe an execution event and verify action-level compliance."""
@@ -90,6 +95,7 @@ class MemoryGuard:
             approval_granted=approval_granted,
             executed=executed,
             include_active=include_active,
+            token_budget=self._resolve_token_budget(token_budget),
             source="guard_action",
             metadata=metadata,
         )
@@ -147,6 +153,12 @@ class MemoryGuard:
             "not_applicable": [item["instruction"] for item in not_applicable_details],
             "details": result["observations"],
             "skipped_details": skipped_details,
+            "protected_overflow": result.get("overflow", {}).get("protected", {}).get("overflowed", False),
+            "omitted_protected_instructions": [
+                item["instruction"]
+                for item in result.get("overflow", {}).get("protected", {}).get("omitted", [])
+            ],
+            "overflow": result.get("overflow", {}),
         }
 
     def reminder(self) -> str:
@@ -159,9 +171,9 @@ class MemoryGuard:
             lines.append(f"- {item.content}")
         return "\n".join(lines)
 
-    def report(self) -> Dict[str, Any]:
+    def report(self, *, token_budget: Optional[int] = None) -> Dict[str, Any]:
         """Generate a full integrity report."""
-        verification = self._mem.verify()
+        verification = self._mem.verify(token_budget=self._resolve_token_budget(token_budget))
         stats = self._mem.stats()
         integrity = verification["integrity"]
 
@@ -176,6 +188,8 @@ class MemoryGuard:
         return {
             "protected": integrity["protected_expected"],
             "active": stats["total"] - integrity["protected_expected"],
+            "protected_overflow": integrity.get("protected_overflow", False),
+            "protected_omitted": integrity.get("protected_omitted", 0),
             "drift_warnings": integrity["drift_warnings"],
             "conflicts": integrity["conflicts_detected"],
             "observed_checks": total_checks,
@@ -184,9 +198,9 @@ class MemoryGuard:
             "details": verification,
         }
 
-    def context(self, query: str, *, token_budget: int = 4000) -> str:
+    def context(self, query: str, *, token_budget: Optional[int] = None) -> str:
         """Build context prompt string with protected zone."""
-        result = self._mem.build_context(query, token_budget=token_budget)
+        result = self._mem.build_context(query, token_budget=self._resolve_token_budget(token_budget))
         return result["prompt"]
 
     # --- Delegate to Memory ---
@@ -203,9 +217,9 @@ class MemoryGuard:
         """Delete a memory by ID."""
         self._mem.forget(memory_id)
 
-    def verify(self) -> Dict[str, Any]:
+    def verify(self, *, token_budget: Optional[int] = None) -> Dict[str, Any]:
         """Run full integrity verification. See Memory.verify()."""
-        return self._mem.verify()
+        return self._mem.verify(token_budget=self._resolve_token_budget(token_budget))
 
     def detect_drift(self) -> Dict[str, Any]:
         """Detect instruction compliance drift. See Memory.detect_drift()."""
@@ -232,6 +246,9 @@ class MemoryGuard:
     def available_checkers(self) -> List[str]:
         """Return built-in and custom checker names."""
         return self._mem.available_checkers()
+
+    def _resolve_token_budget(self, token_budget: Optional[int]) -> int:
+        return self._default_token_budget if token_budget is None else token_budget
 
     def register_llm_checker(
         self,

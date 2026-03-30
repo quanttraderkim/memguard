@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "memguard"
+name = "instructionguard"
 version = "0.3.0"
 description = "Memory integrity layer for AI agents"
 readme = "README.md"
@@ -18,8 +18,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/quanttraderkim/memguard"
-Repository = "https://github.com/quanttraderkim/memguard"
+Homepage = "https://github.com/quanttraderkim/instructionguard"
+Repository = "https://github.com/quanttraderkim/instructionguard"
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0", "build>=1.2"]

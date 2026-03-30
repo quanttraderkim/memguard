@@ -1,8 +1,14 @@
-# MemGuard
+# InstructionGuard
 
-Local-first instruction persistence and memory integrity for AI agents.
+![InstructionGuard hero](assets/instructionguard-hero.svg)
+
+Local-first instruction persistence and execution-time memory integrity for AI agents.
 
 > Keep critical instructions alive, observable, and testable across compaction, tool calls, and drift.
+
+[Get Started in 5 Minutes](#-get-started-in-5-minutes) | [See a Real Agent Loop](#-see-a-real-agent-loop) | [Why Not Just Pinned Prompts](#-why-not-just-pinned-prompts)
+
+InstructionGuard is for the gap between "saved to memory" and "still shaping behavior 50 turns later." It is not another generic memory store. It keeps critical instructions alive in context, verifies that responses still follow them, and checks real execution events before unsafe actions slip through.
 
 ## The Problem
 
@@ -18,29 +24,46 @@ User: "오늘 뭐 할까?"
 Agent: "좋습니다. 일정을 확인해보겠습니다."  ← 🤦 forgot the instruction
 ```
 
-This happens because:
-- Context windows compress old content
-- Memory retrieval misses critical instructions
-- No one verifies if stored memories actually influence behavior
+This happens because context windows compress old content, retrieval misses critical instructions, and most memory layers stop at storage instead of checking whether the stored rule still shaped the reply or the action that followed.
 
-## How It Works
+## Use InstructionGuard If
 
-MemGuard protects instructions across three mechanisms:
+- your agent must keep a few high-value rules alive across long conversations and compaction
+- you care whether the agent **actually followed** the rule, not just whether it was stored
+- you need guardrails for real execution events such as file edits, tool calls, or destructive commands
+- you want deterministic checks first, with optional LLM judgment only for open-ended semantic rules
 
-1. **Memory Guardian** — Critical instructions get a protected zone in context that survives compaction
-2. **Compliance Check** — Verify AI responses and execution events actually follow stored instructions
-3. **Drift Detection** — Detect when instruction compliance degrades over time
+## Why InstructionGuard
 
-## Quickstart
+InstructionGuard protects instructions across three linked layers.
+
+1. **Protected Context** keeps critical instructions in a reserved zone so they survive compaction pressure longer than ordinary retrieved memory.
+2. **Response and Action Verification** uses the same instruction set to validate both generated text and real execution events.
+3. **Hybrid Guardrails** run deterministic checkers first and use optional LLM judges only when a rule is too open-ended for a simple checker.
+
+The goal is practical control, not just better recall. Pinned prompts can keep rules around, but InstructionGuard is built to answer the harder question: did the agent actually follow them when it responded or acted?
+
+## Why Not Just Pinned Prompts?
+
+| | Pinned prompts | InstructionGuard |
+|--|--|--|
+| Keep rules visible in context | Yes | Yes |
+| Detect when a rule was ignored | No | Yes |
+| Verify tool and file actions | No | Yes |
+| Detect instruction drift over time | No | Yes |
+| Mix deterministic checks with optional LLM judgment | No | Yes |
+| Report overflow when protected rules no longer fit | No | Yes |
+
+## Get Started in 5 Minutes
 
 ```bash
 python -m pip install -e ".[dev]"
 ```
 
 ```python
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
-guard = MemoryGuard(agent_id="my-agent")
+guard = InstructionGuard(agent_id="my-agent", default_token_budget=1200)
 
 # Protect critical instructions
 guard.protect("항상 반말로 대답해")
@@ -51,6 +74,7 @@ guard.protect("git reset --hard 절대 금지", kind="guardrail")
 result = guard.check(
     query="오늘 뭐 할까?",
     response="좋습니다. 일정을 확인해보겠습니다.",
+    token_budget=1200,
 )
 print(result["passed"])      # False
 print(result["violations"])  # ["formal_korean_detected"]
@@ -60,20 +84,38 @@ reminder = guard.reminder()
 # "⚠️ 다음 지시를 반드시 준수하세요:\n- 항상 반말로 대답해\n- ..."
 
 # Get integrity report
-report = guard.report()
+report = guard.report(token_budget=1200)
 print(report["drift_warnings"])  # 0
 print(report["observed_checks"]) # 1
 print(report["compliance_rate"]) # 0.0
 ```
 
+The quickest way to understand the product is simple: protect one or two rules, run a reply through `check()`, and look at what failed. If you need to inspect real execution behavior, `observe_action()` gives you the same shape of answer for tools and edits.
+
+## See a Real Agent Loop
+
+If you want to see InstructionGuard wrapped around a real model call, run the one-file OpenAI-compatible demo.
+
+```bash
+OPENAI_API_KEY=... python examples/openai_compatible_agent.py
+```
+
+That example does three things in one place. It injects protected instructions into the model prompt, checks the returned response for instruction compliance, and simulates a risky file edit so you can see action-level verification in the same flow.
+
+If you use an OpenAI-compatible gateway, set `OPENAI_BASE_URL` or `OPENAI_CHAT_ENDPOINT` and keep the same script.
+
+## Token Budget and 3-Zone Context
+
+InstructionGuard currently uses one total `token_budget` and splits it into three zones with a simple fixed policy: `Protected 50%`, `Active 35%`, and `Buffer` for the rest. Token usage is estimated locally with a lightweight character-based heuristic, not a model-specific tokenizer. Today that means InstructionGuard is doing **selection**, not full semantic compression. When the protected zone overflows, it reports the omission explicitly instead of pretending every protected instruction still made it into the final prompt.
+
 ## Custom Checkers
 
-You can extend MemGuard without waiting for a built-in rule:
+You can extend InstructionGuard without waiting for a built-in rule:
 
 ```python
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
-guard = MemoryGuard(agent_id="my-agent")
+guard = InstructionGuard(agent_id="my-agent")
 
 guard.register_checker(
     "korean_language",
@@ -95,14 +137,14 @@ Custom checkers receive `query`, `response`, `memory`, and `event_context`, so t
 ## Optional LLM Checkers
 
 For open-ended instructions that do not map well to a rule, you can register an LLM-backed checker.
-`provider` can be `openai`, `anthropic`, or `gemini`, and if you omit it MemGuard will infer it from the model name:
+`provider` can be `openai`, `anthropic`, or `gemini`, and if you omit it InstructionGuard will infer it from the model name:
 
 ```python
 import os
 
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
-guard = MemoryGuard(
+guard = InstructionGuard(
     agent_id="my-agent",
     llm="claude-3-5-sonnet-latest",
     llm_api_key=os.getenv("ANTHROPIC_API_KEY"),
@@ -126,7 +168,7 @@ print(result["status"])  # passed
 
 If you do not want a network call, pass a local `judge=` callable instead. Tests use that path so the core suite stays deterministic. For Gemini, pass `provider="gemini"` and a `gemini-*` model with `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
 
-MemGuard now supports three stability levers for LLM checkers:
+InstructionGuard now supports three stability levers for LLM checkers:
 - `rubric_template`: use a narrower built-in judging template such as `language_compliance`, `summary_first`, `brevity_limit`, or `approval_before_action`
 - `local_fallback=True`: compare the LLM decision against a deterministic local signal when one exists
 - `uncertainty_threshold`: downgrade low-confidence negatives into `uncertain` instead of hard-failing immediately
@@ -136,12 +178,12 @@ LLM checkers are still experimental, but they now expose `passed`, `failed`, and
 
 ## Action-Level Verification
 
-MemGuard can also verify what the agent actually did, not just what it said:
+InstructionGuard can also verify what the agent actually did, not just what it said:
 
 ```python
-from memguard import MemoryGuard
+from instructionguard import InstructionGuard
 
-guard = MemoryGuard(agent_id="my-agent")
+guard = InstructionGuard(agent_id="my-agent")
 guard.protect("파일 수정 전에는 항상 먼저 허가를 요청해")
 guard.protect("git reset --hard 절대 금지", kind="guardrail")
 
@@ -159,7 +201,7 @@ print(result["status"])      # failed
 print(result["violations"])  # ["approval_request_missing", "executed_without_approval"]
 ```
 
-This makes MemGuard useful for tool-using coding agents where correctness depends on actual execution order, not just generated text.
+This makes InstructionGuard useful for tool-using coding agents where correctness depends on actual execution order, not just generated text.
 
 `check()` now separates five outcomes:
 - `passed`: an applicable checker ran and passed
@@ -170,7 +212,7 @@ This makes MemGuard useful for tool-using coding agents where correctness depend
 
 ## Benchmark
 
-MemGuard now ships with a bundled `Instruction Survival Benchmark (ISB)`:
+InstructionGuard now ships with a bundled `Instruction Survival Benchmark (ISB)`:
 
 ```bash
 python benchmarks/isb/run.py --output benchmarks/isb/latest_results.json
@@ -187,9 +229,12 @@ python benchmarks/isb/run.py \
 ```
 
 The benchmark is split into two tracks:
-- `Persistence`: compares `no_memory`, `naive_fifo`, `pinned_prompt`, and `memguard`
+- `Persistence`: compares `no_memory`, `naive_fifo`, `pinned_prompt`, and `instructionguard`
+- `Saturation`: adds 20-rule and 50-rule protected-zone stress cases and reports explicit overflow/omission
 - `Verification`: measures precision / recall / F1 / false-positive rate / mean turns to detection
 - `LLM Verification` optionally evaluates open-ended semantic rules across language, summary-first, brevity, and approval-before-action families
+
+![Instruction Survival Benchmark snapshot](assets/isb-summary.svg)
 
 On the bundled deterministic suite, the key result at token budget `500` is:
 
@@ -198,13 +243,14 @@ On the bundled deterministic suite, the key result at token budget `500` is:
 | `no_memory` | `0.0` | `0.0` | `0.0` |
 | `naive_fifo` | `0.0` | `0.0` | `0.0` |
 | `pinned_prompt` | `1.0` | `0.0` | `0.714` |
-| `memguard` | `1.0` | `1.0` | `1.0` |
+| `instructionguard` | `1.0` | `1.0` | `1.0` |
 
 The bundled verification track currently reports `precision=1.0`, `recall=1.0`, `f1=1.0`, `fpr=0.0`, and `mttd=1.0` on supported built-in rules. Full raw output is written to `benchmarks/isb/latest_results.json`.
 
 The optional provider-backed LLM track is intentionally reported separately and now also reports `uncertain_rate`. The bundled open-ended suite currently covers 21 cases across four rubric families, so it is much more useful for rubric tuning than the earlier tiny smoke set. Treat those results as tuning feedback, not headline marketing numbers.
 
 The open-ended benchmark dataset now lives in `benchmarks/isb/llm_cases.json`, so you can grow or fork the semantic evaluation set without changing benchmark code.
+The same benchmark now also includes a saturation track so you can see how `instructionguard`, `pinned_prompt`, and naive baselines behave when 20 to 50 protected instructions compete for a small budget.
 
 ## Development
 
@@ -261,7 +307,7 @@ if not result["passed"]:
 ### Memory (low-level)
 
 Full control over memory storage, retrieval, replay, and consolidation.
-See `src/memguard/core.py` for complete API.
+See `src/instructionguard/core.py` for complete API.
 
 ## Documentation
 

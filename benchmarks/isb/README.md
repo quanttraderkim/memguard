@@ -1,11 +1,17 @@
 # Instruction Survival Benchmark
 
-This directory contains the bundled benchmark suite for MemGuard.
+This directory contains the bundled benchmark suite for InstructionGuard.
 
 Run:
 
 ```bash
 python benchmarks/isb/run.py --output benchmarks/isb/latest_results.json
+```
+
+Render the bundled SVG summary for the README:
+
+```bash
+python benchmarks/isb/render_svg.py
 ```
 
 Optional open-ended LLM track:
@@ -21,6 +27,7 @@ python benchmarks/isb/run.py \
 Tracks:
 
 - `Persistence`: instruction survival, active fact retention, task success rate, protected token ratio
+- `Saturation`: 20-rule and 50-rule protected-zone stress cases, with explicit overflow and omission reporting
 - `Verification`: precision, recall, F1, false-positive rate, mean turns to detection
 - `LLM Verification`: open-ended semantic checks for language compliance, summary-first behavior, brevity limits, and approval-before-action, with `uncertain_rate` reported separately
 
@@ -29,3 +36,4 @@ The benchmark is deterministic unless you enable the optional LLM verification t
 The LLM track should be treated as experimental. Provider behavior, rubric wording, and JSON formatting stability can materially affect precision, false-positive rate, and uncertainty rate. The bundled open-ended suite is intentionally larger than the initial smoke test so you can tune rubric templates, negative recheck behavior, and hybrid fallback behavior instead of reading too much into a tiny sample.
 
 The open-ended semantic cases live in `benchmarks/isb/llm_cases.json`.
+The generated visual summary is written to `assets/isb-summary.svg`.
