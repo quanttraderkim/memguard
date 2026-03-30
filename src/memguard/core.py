@@ -112,18 +112,44 @@ class Memory:
         active_budget = max(int(token_budget * 0.35), 1)
         buffer_budget = max(token_budget - protected_budget - active_budget, 0)
 
-        protected_selected = _fit_items_to_budget(protected, protected_budget)
-        active_selected = _fit_items_to_budget(active, active_budget)
-        buffer_selected = _fit_items_to_budget(buffer_items, buffer_budget)
+        protected_fit = _fit_items_to_budget_detailed(protected, protected_budget)
+        active_fit = _fit_items_to_budget_detailed(active, active_budget)
+        buffer_fit = _fit_items_to_budget_detailed(buffer_items, buffer_budget)
+
+        protected_selected = protected_fit["selected"]
+        active_selected = active_fit["selected"]
+        buffer_selected = buffer_fit["selected"]
 
         prompt = _render_context(protected_selected, active_selected, buffer_selected)
         return {
             "query": query,
             "token_budget": token_budget,
+            "budgets": {
+                "protected": protected_budget,
+                "active": active_budget,
+                "buffer": buffer_budget,
+            },
             "zones": {
                 "protected": [item.to_dict() for item in protected_selected],
                 "active": [item.to_dict() for item in active_selected],
                 "buffer": [item.to_dict() for item in buffer_selected],
+            },
+            "overflow": {
+                "protected": _selection_overflow_summary(
+                    zone="protected",
+                    fit=protected_fit,
+                    budget=protected_budget,
+                ),
+                "active": _selection_overflow_summary(
+                    zone="active",
+                    fit=active_fit,
+                    budget=active_budget,
+                ),
+                "buffer": _selection_overflow_summary(
+                    zone="buffer",
+                    fit=buffer_fit,
+                    budget=buffer_budget,
+                ),
             },
             "prompt": prompt,
         }
@@ -147,6 +173,10 @@ class Memory:
             "integrity": {
                 "protected_loaded": len(loaded_ids),
                 "protected_expected": len(protected),
+                "protected_overflow": context["overflow"]["protected"]["overflowed"],
+                "protected_omitted": context["overflow"]["protected"]["omitted_count"],
+                "protected_budget": context["overflow"]["protected"]["budget"],
+                "protected_used_tokens": context["overflow"]["protected"]["used_tokens"],
                 "instruction_checks_passed": passed_checks,
                 "instruction_checks_failed": failed_checks,
                 "instruction_checks_uncertain": uncertain_checks,
@@ -156,6 +186,7 @@ class Memory:
             },
             "conflicts": conflicts,
             "drift": drift,
+            "overflow": context["overflow"],
         }
 
     def replay(
@@ -209,6 +240,7 @@ class Memory:
             loaded_memory_map=loaded_memory_map,
             source=source,
             context_zones=context["zones"],
+            overflow=context["overflow"],
         )
 
     def observe_action(
@@ -254,6 +286,7 @@ class Memory:
             loaded_memory_map=loaded_memory_map,
             source=source,
             context_zones=context["zones"],
+            overflow=context["overflow"],
             event_context=event_context,
         )
         observed["action"] = event_context
@@ -411,6 +444,7 @@ class Memory:
         loaded_memory_map: Dict[str, MemoryItem],
         source: str,
         context_zones: Dict[str, List[Dict[str, Any]]],
+        overflow: Optional[Dict[str, Any]] = None,
         event_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         observations: List[Dict[str, Any]] = []
@@ -462,6 +496,7 @@ class Memory:
             "uncertain": uncertain_count,
             "observations": observations,
             "skipped": skipped,
+            "overflow": overflow or {},
         }
 
     def _record_compliance_event(
@@ -616,15 +651,55 @@ def _render_zone(title: str, items: List[MemoryItem]) -> str:
 
 
 def _fit_items_to_budget(items: List[MemoryItem], budget: int) -> List[MemoryItem]:
+    return _fit_items_to_budget_detailed(items, budget)["selected"]
+
+
+def _fit_items_to_budget_detailed(items: List[MemoryItem], budget: int) -> Dict[str, Any]:
     selected: List[MemoryItem] = []
+    omitted: List[Dict[str, Any]] = []
     used = 0
     for item in items:
         item_cost = _estimate_tokens(item.content)
         if selected and used + item_cost > budget:
+            omitted.append(
+                {
+                    "item": item,
+                    "estimated_tokens": item_cost,
+                    "reason": "budget_exceeded",
+                }
+            )
             continue
         selected.append(item)
         used += item_cost
-    return selected
+    return {
+        "selected": selected,
+        "omitted": omitted,
+        "used_tokens": used,
+        "candidate_tokens": sum(_estimate_tokens(item.content) for item in items),
+    }
+
+
+def _selection_overflow_summary(*, zone: str, fit: Dict[str, Any], budget: int) -> Dict[str, Any]:
+    used_tokens = int(fit["used_tokens"])
+    omitted = list(fit["omitted"])
+    return {
+        "zone": zone,
+        "budget": budget,
+        "used_tokens": used_tokens,
+        "candidate_tokens": int(fit["candidate_tokens"]),
+        "selected_count": len(fit["selected"]),
+        "omitted_count": len(omitted),
+        "overflowed": bool(omitted) or used_tokens > budget,
+        "omitted": [
+            {
+                "id": entry["item"].id,
+                "instruction": entry["item"].content,
+                "estimated_tokens": entry["estimated_tokens"],
+                "reason": f"{zone}_budget_exceeded",
+            }
+            for entry in omitted
+        ],
+    }
 
 
 def _estimate_tokens(text: str) -> int:

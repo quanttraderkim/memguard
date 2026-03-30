@@ -153,6 +153,12 @@ class MemoryGuard:
             "not_applicable": [item["instruction"] for item in not_applicable_details],
             "details": result["observations"],
             "skipped_details": skipped_details,
+            "protected_overflow": result.get("overflow", {}).get("protected", {}).get("overflowed", False),
+            "omitted_protected_instructions": [
+                item["instruction"]
+                for item in result.get("overflow", {}).get("protected", {}).get("omitted", [])
+            ],
+            "overflow": result.get("overflow", {}),
         }
 
     def reminder(self) -> str:
@@ -182,6 +188,8 @@ class MemoryGuard:
         return {
             "protected": integrity["protected_expected"],
             "active": stats["total"] - integrity["protected_expected"],
+            "protected_overflow": integrity.get("protected_overflow", False),
+            "protected_omitted": integrity.get("protected_omitted", 0),
             "drift_warnings": integrity["drift_warnings"],
             "conflicts": integrity["conflicts_detected"],
             "observed_checks": total_checks,
