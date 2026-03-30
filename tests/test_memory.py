@@ -36,6 +36,9 @@ def test_verify_accepts_runtime_token_budget(tmp_path):
 
     assert report["protected_memories"] == 2
     assert report["integrity"]["protected_loaded"] == 1
+    assert report["integrity"]["protected_overflow"] is True
+    assert report["integrity"]["protected_omitted"] == 1
+    assert report["overflow"]["protected"]["omitted"][0]["instruction"] == "항상 반말로 대답해"
 
 
 def test_project_memory_is_recalled_for_matching_query(tmp_path):
@@ -46,6 +49,18 @@ def test_project_memory_is_recalled_for_matching_query(tmp_path):
     result = mem.recall("web-app에서 패키지 설치 명령 알려줘", top_k=1, include_protected=False)
 
     assert result[0]["content"] == "이 저장소는 pnpm을 사용해"
+
+
+def test_build_context_reports_protected_overflow(tmp_path):
+    mem = Memory(agent_id="assistant", storage_path=str(tmp_path))
+    mem.remember("코드 블록에 항상 언어 태그를 붙여")
+    mem.remember("항상 반말로 대답해")
+
+    context = mem.build_context("파이썬 예제 보여줘", token_budget=10)
+
+    assert context["overflow"]["protected"]["overflowed"] is True
+    assert context["overflow"]["protected"]["omitted_count"] == 1
+    assert context["overflow"]["protected"]["omitted"][0]["instruction"] == "항상 반말로 대답해"
 
 
 def test_export_and_consolidate(tmp_path):
@@ -145,6 +160,8 @@ def test_observe_response_accepts_runtime_token_budget(tmp_path):
     assert observed["checked_memories"] == 1
     skipped_instructions = {item["instruction"] for item in observed["skipped"]}
     assert "항상 반말로 대답해" not in skipped_instructions
+    assert observed["overflow"]["protected"]["overflowed"] is True
+    assert observed["overflow"]["protected"]["omitted"][0]["instruction"] == "항상 반말로 대답해"
 
 
 def test_observe_response_can_include_active_memories(tmp_path):

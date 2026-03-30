@@ -129,8 +129,11 @@ def test_check_accepts_runtime_token_budget(tmp_path):
 
     assert large["status"] == "failed"
     assert "항상 반말로 대답해" in large["not_applicable"]
+    assert large["protected_overflow"] is False
     assert small["status"] == "failed"
     assert "항상 반말로 대답해" not in small["not_applicable"]
+    assert small["protected_overflow"] is True
+    assert small["omitted_protected_instructions"] == ["항상 반말로 대답해"]
 
 
 def test_report_accepts_runtime_token_budget(tmp_path):
@@ -142,6 +145,8 @@ def test_report_accepts_runtime_token_budget(tmp_path):
 
     assert report["protected"] == 2
     assert report["details"]["integrity"]["protected_loaded"] == 1
+    assert report["protected_overflow"] is True
+    assert report["protected_omitted"] == 1
 
 
 def test_context_returns_prompt_string(tmp_path):
@@ -167,6 +172,7 @@ def test_guard_can_set_default_token_budget(tmp_path):
 
     assert result["status"] == "failed"
     assert "항상 반말로 대답해" not in result["not_applicable"]
+    assert result["protected_overflow"] is True
 
 
 def test_guard_delegates_to_memory(tmp_path):
